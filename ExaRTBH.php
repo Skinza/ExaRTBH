@@ -18,21 +18,6 @@
 	
 
 	logstr("Booting....");
-	/*logstr("Loading routes from file ". $config['blackholeipfile']);
-	
-	if(!is_file($config['blackholeipfile'])) {
-		if(!is_dir($config['blackholeipfile'])) {
-			logstr2("WARNING","blackhole ip file not found, creating empty file");
-		}
-	}*/
-
-// some debug testing black hole entries
-$blackholes[] = new BlackHoleEntry("a","b","c");
-$blackholes[] = new BlackHoleEntry("d","e","f");
-$blackholes[] = new BlackHoleEntry("g","h","i");
-
-
-	
 	while($config['running']) {
 		// does the file exist?
 		if(!is_file($config['blackholeipfile'])) {
@@ -44,11 +29,16 @@ $blackholes[] = new BlackHoleEntry("g","h","i");
         	}
 		// load entries from blackhole file
 		$newBlackholeEntries = loadBlackholesFromFile($config['blackholeipfile']);
-var_dump($newBlackholeEntries);
-	        // generate hash of file
+
+		// compare current blackholes with new ones
+		
+	        
+
+		// generate hash of file
         	$config['blackholiphash'] = md5_file($config['blackholeipfile']);
 	        logstr("generated hash: " . $config['blackholiphash']);
-
+		
+		// wait for change of file
 		logstr("waiting...");
 		while(md5_file($config['blackholeipfile']) == $config['blackholiphash']) {
 			sleep($config['filecheckinterval']);

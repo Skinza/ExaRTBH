@@ -8,7 +8,9 @@
 	$config = array( 
 		'running' => true,
 		'blackholeipfile' => 'blackholeips',
-		'filecheckinterval' => 5
+		'filecheckinterval' => 5,
+		'blackhole_bgp_community' => "65001:666",
+		'blackhole_nexthop' => '192.6.6.6'
 	);
 
 	// "internal" list of active blackhole routes
@@ -16,13 +18,13 @@
 	
 
 	logstr("Booting....");
-	logstr("Loading routes from file ". $config['blackholeipfile']);
+	/*logstr("Loading routes from file ". $config['blackholeipfile']);
 	
 	if(!is_file($config['blackholeipfile'])) {
 		if(!is_dir($config['blackholeipfile'])) {
 			logstr2("WARNING","blackhole ip file not found, creating empty file");
 		}
-	}
+	}*/
 
 // some debug testing black hole entries
 $blackholes[] = new BlackHoleEntry("a","b","c");
@@ -30,9 +32,19 @@ $blackholes[] = new BlackHoleEntry("d","e","f");
 $blackholes[] = new BlackHoleEntry("g","h","i");
 
 
-	// should announce all loaded prefixes
 	
 	while($config['running']) {
+		// does the file exist?
+		if(!is_file($config['blackholeipfile'])) {
+                	if(!is_dir($config['blackholeipfile'])) {
+				// file does not exist, create one and write known blackhole entries to file!
+                        	logstr2("WARNING","blackhole ip file not found, (re)creating file [" . $config['blackholeipfile'] . "]");
+				generateBlackholeFile();
+                	}
+        	}
+		// load entries from blackhole file
+		$newBlackholeEntries = loadBlackholesFromFile($config['blackholeipfile']);
+var_dump($newBlackholeEntries);
 	        // generate hash of file
         	$config['blackholiphash'] = md5_file($config['blackholeipfile']);
 	        logstr("generated hash: " . $config['blackholiphash']);
@@ -53,6 +65,27 @@ $blackholes[] = new BlackHoleEntry("g","h","i");
 	function logstr2($loglevel,$str_msg) {
 		echo "[".date("Y-m-d h:i:s")."] [".$loglevel."] ".$str_msg . "\n";
 	}
+
+	// load blackholes from file and return them als an array of BlackHoleEntries
+	function loadBlackholesFromFile($file) {
+		global $config;
+		$newBlackholes = array();
+		// tbd: yes i know this should have error / input checking
+		foreach(file($file) as $row) {
+			$row = trim($row); // trim the line
+			// if it is not a comment 
+			if(substr($row,0,1) != "#") 
+				// parse the row, it is 1 of the following formats:
+				//  network/prefixlen (127.0.0.1/32) (only /32 supported right now)
+				// more formats will be supported in the future 
+				if(preg_match("/(.*)\/(32)$/",$row)) {
+					$newBlackholes[] = new BlackholeEntry(trim($row),$config['blackhole_bgp_community'],$config['blackhole_nexthop']);
+				} else {
+					logstr2("WARNING", "Ignoring entry (unexpected format) [".$row."]");
+			}
+		}
+		return $newBlackholes;
+	}	
 
 	// generateBlackhole file content en write to file
 	function generateBlackholeFile()

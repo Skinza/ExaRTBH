@@ -7,8 +7,8 @@
 	// config
 	$config = array( 
 		'running' => true,
-		'debug' => true, // warning, this will produce debug data to stdout!
-		'blackholeipfile' => 'blackholeips',
+		'debug' => false, // warning, this will produce debug data to stdout!
+		'blackholeipfile' => '/home/bas/ExaRTBH/blackholeips',
 		'filecheckinterval' => 5,
 		'blackhole_bgp_community' => "65001:666",
 		'blackhole_nexthop' => '192.6.6.6'
@@ -135,7 +135,7 @@
 		}
 		// tbd add local pref to data class
 		// tbd better checks
-		function announceString() { return "announce route $this->prefix next-hop $this->nexthop local-preference $this->localpref community [$this->bgp_community];"; }
-		function withdrawString() { return "withdraw route $this->prefix next-hop $this->nexthop local-preference $this->localpref community [$this->bgp_community];"; }
+		function announceString() { return "announce route $this->prefix next-hop $this->nexthop local-preference $this->localpref community [$this->bgp_community]"; }
+		function withdrawString() { return "withdraw route $this->prefix next-hop $this->nexthop local-preference $this->localpref community [$this->bgp_community]"; }
 	}
 ?>
